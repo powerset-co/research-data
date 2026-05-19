@@ -4,10 +4,11 @@ Public dataset of GitHub repository metadata, activity, scores, and contributor 
 
 ## Access methods
 
-There are two ways to use this data:
+There are three ways to use this data:
 
 1. **DuckDB** — attach the frozen DuckLake catalog directly and run SQL locally
 2. **MCP server** — connect an AI assistant (Claude, Codex, etc.) to the hosted MCP endpoint
+3. **Agent skill** — drop the [skill file](skill/powerset-research-data.md) into your agent's context to give it the schema, query patterns, and best practices for working with the data via DuckDB
 
 ## DuckDB (local)
 
