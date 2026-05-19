@@ -1,6 +1,9 @@
-# Powerset Research Data — DuckDB Query Skill
+---
+name: powerset-research-data
+description: Query a public GitHub dataset of ~400k active repositories via DuckDB. Covers metadata, stars, contributors, pull requests, issues, categories, README summaries, and embeddings. Use when asked about GitHub repository data, open source trends, contributor activity, or repository discovery.
+---
 
-You have access to a public GitHub dataset maintained by [Powerset](https://powerset.co) via a frozen DuckLake catalog. Use DuckDB to query it directly — no credentials or API keys required.
+You have access to a public GitHub dataset maintained by [Powerset](https://powerset.co) via a frozen DuckLake catalog. Use DuckDB to query it directly - no credentials or API keys required.
 
 ## Setup
 
@@ -71,7 +74,7 @@ ORDER BY table_name, ordinal_position;
 
 - Always use `LIMIT` when exploring. Start with `LIMIT 20` and increase as needed.
 - Prefer aggregations (`COUNT`, `SUM`, `GROUP BY`) over fetching raw rows.
-- Do not `SELECT *` on `repo_readme_summary_embeddings` — the embedding column is large. Select specific columns instead.
+- Do not `SELECT *` on `repo_readme_summary_embeddings` - the embedding column is large. Select specific columns instead.
 - Use `repo_readme_summaries` (not raw READMEs) to understand what a project does.
 - Filter by `repo_node_id` when querying activity tables (`repo_pulls`, `repo_issues`, `repo_stars_daily`) for specific repos.
 
