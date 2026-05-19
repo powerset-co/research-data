@@ -17,6 +17,29 @@ ATTACH 'ducklake:https://research-data.powerset.dev/github-public/latest/public.
 
 After attaching, reference tables as `github.<table>`.
 
+## Discovering the schema
+
+List all tables:
+
+```sql
+SHOW TABLES FROM github;
+```
+
+Show columns for a specific table:
+
+```sql
+DESCRIBE github.repos;
+```
+
+Show columns for all tables at once:
+
+```sql
+SELECT table_name, column_name, data_type
+FROM information_schema.columns
+WHERE table_catalog = 'github'
+ORDER BY table_name, ordinal_position;
+```
+
 ## Tables
 
 | Table | Description | Key columns |
