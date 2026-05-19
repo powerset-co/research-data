@@ -198,6 +198,3 @@ The `github` catalog contains the following tables. All tables join on `repo_nod
 - **Star history**: the GitHub Stargazers API returns at most ~40,000 individual star events per repository. For repos with more than 40k stars, `repo_stars_daily` has incomplete history and `SUM(stars_delta)` will undercount the true total. Use `repos.stars_count` for accurate current star counts.
 - **Snapshots**: the data is published as immutable timestamped snapshots. The `latest/` pointer is updated when a new snapshot is published. Snapshots are not real-time; there is a delay between GitHub activity and data availability.
 
-## License
-
-The underlying GitHub data is sourced from the [GitHub REST API](https://docs.github.com/en/rest) and is subject to [GitHub's Terms of Service](https://docs.github.com/en/site-policy/github-terms/github-terms-of-service). Derived scores, categories, embeddings, and summaries are produced by Powerset.
