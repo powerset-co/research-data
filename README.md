@@ -30,7 +30,7 @@ ATTACH 'ducklake:https://research-data.powerset.dev/github-public/latest/public.
 Repos with the most stars:
 
 ```sql
-SELECT repo_node_id, language, stars_count, pushed_at
+SELECT full_name, language, stars_count, pushed_at
 FROM github.repos
 ORDER BY stars_count DESC
 LIMIT 20;
@@ -78,16 +78,21 @@ LIMIT 30;
 Find similar repositories using README embeddings:
 
 ```sql
-SELECT b.repo_node_id,
-       list_cosine_similarity(a.embedding, b.embedding) AS similarity
-FROM github.repo_readme_summary_embeddings a
-JOIN github.repo_readme_summary_embeddings b ON a.repo_node_id != b.repo_node_id
-WHERE a.repo_node_id = (
-    SELECT repo_node_id FROM github.repos
-    WHERE full_name = 'duckdb/duckdb'
+WITH anchor AS (
+    SELECT repo_node_id, embedding
+    FROM github.repo_readme_summary_embeddings
+    WHERE repo_node_id = (
+        SELECT repo_node_id FROM github.repos WHERE full_name = 'duckdb/duckdb'
+    )
+      AND embedding IS NOT NULL
 )
-  AND a.embedding IS NOT NULL
+SELECT r.full_name,
+       list_cosine_similarity(anchor.embedding, b.embedding) AS similarity
+FROM anchor
+JOIN github.repo_readme_summary_embeddings b
+  ON b.repo_node_id <> anchor.repo_node_id
   AND b.embedding IS NOT NULL
+JOIN github.repos r ON r.repo_node_id = b.repo_node_id
 ORDER BY similarity DESC
 LIMIT 10;
 ```
