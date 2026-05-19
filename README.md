@@ -146,7 +146,7 @@ Add to your Claude Desktop config (`claude_desktop_config.json`):
 ### OpenAI Codex
 
 ```bash
-codex --full-auto mcp add --transport http powerset-research https://research-mcp.powerset.dev/mcp/
+codex mcp add powerset-research --url https://research-mcp.powerset.dev/mcp/
 ```
 
 ### Cursor
