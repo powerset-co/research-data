@@ -179,7 +179,7 @@ Add to your Cursor MCP settings (`.cursor/mcp.json` in your project or global co
 
 ## Tables
 
-The `github` catalog contains the following tables. All tables join on `repo_node_id` as the canonical repository identifier.
+The `github` catalog contains the following tables. Repo tables join on `repo_node_id`. User data joins via `user_id` (e.g., `repo_contributors.user_id` to `github_users.user_id`).
 
 | Table | Description |
 |-------|-------------|

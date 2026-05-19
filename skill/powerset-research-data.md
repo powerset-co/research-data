@@ -57,7 +57,7 @@ ORDER BY table_name, ordinal_position;
 | `repo_issues` | Issue metadata (body text excluded) | `repo_node_id`, `issue_number`, `title`, `state`, `user_login`, `created_at`, `is_pull_request` |
 | `repo_stars_daily` | Daily star counts | `repo_node_id`, `starred_date`, `stars_delta` |
 
-**Join key**: all tables join on `repo_node_id`.
+**Join keys**: repo tables join on `repo_node_id`. User data joins via `user_id` (e.g., `repo_contributors.user_id` to `github_users.user_id`).
 
 ## Data coverage
 
