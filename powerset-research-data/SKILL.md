@@ -47,7 +47,7 @@ ORDER BY table_name, ordinal_position;
 
 | Table | Description | Key columns |
 |-------|-------------|-------------|
-| `repos` | Core repository universe (~400k active repos with ≥10 stars) | `repo_node_id`, `full_name`, `language`, `stars_count`, `forks_count`, `pushed_at`, `created_at` |
+| `repos` | Core repository universe (~400k active repos with ≥10 stars) | `repo_node_id`, `name_with_owner`, `stars_count`, `fork_count`, `pushed_at`, `created_at` |
 | `repo_metadata` | Extended attributes: description, topics, license, owner type, feature flags | `repo_node_id`, `language`, `owner_type`, `visibility`, `topics` |
 | `repo_scores` | Powerset-computed ranking scores | `repo_node_id`, `score_overall`, `cohort_group`, `star_cohort` |
 | `repo_categories` | Top category assignment per repo | `repo_node_id`, `top_category`, `top_category_id`, `similarity` |
@@ -83,7 +83,7 @@ ORDER BY table_name, ordinal_position;
 Top repos by stars:
 
 ```sql
-SELECT full_name, language, stars_count, pushed_at
+SELECT name_with_owner, stars_count, pushed_at
 FROM github.repos
 ORDER BY stars_count DESC
 LIMIT 20;
@@ -95,7 +95,7 @@ Contributors to a specific repo:
 SELECT login, contributions
 FROM github.repo_contributors
 WHERE repo_node_id = (
-    SELECT repo_node_id FROM github.repos WHERE full_name = 'duckdb/duckdb'
+    SELECT repo_node_id FROM github.repos WHERE name_with_owner = 'duckdb/duckdb'
 )
 ORDER BY contributions DESC
 LIMIT 10;
@@ -107,7 +107,7 @@ Recent PR activity:
 SELECT pull_number, title, state, user_login, created_at
 FROM github.repo_pulls
 WHERE repo_node_id = (
-    SELECT repo_node_id FROM github.repos WHERE full_name = 'duckdb/duckdb'
+    SELECT repo_node_id FROM github.repos WHERE name_with_owner = 'duckdb/duckdb'
 )
 ORDER BY created_at DESC
 LIMIT 20;
@@ -119,7 +119,7 @@ Daily star history:
 SELECT starred_date, stars_delta
 FROM github.repo_stars_daily
 WHERE repo_node_id = (
-    SELECT repo_node_id FROM github.repos WHERE full_name = 'duckdb/duckdb'
+    SELECT repo_node_id FROM github.repos WHERE name_with_owner = 'duckdb/duckdb'
 )
 ORDER BY starred_date DESC
 LIMIT 30;
@@ -132,11 +132,11 @@ WITH anchor AS (
     SELECT repo_node_id, embedding
     FROM github.repo_readme_summary_embeddings
     WHERE repo_node_id = (
-        SELECT repo_node_id FROM github.repos WHERE full_name = 'duckdb/duckdb'
+        SELECT repo_node_id FROM github.repos WHERE name_with_owner = 'duckdb/duckdb'
     )
       AND embedding IS NOT NULL
 )
-SELECT r.full_name,
+SELECT r.name_with_owner,
        list_cosine_similarity(anchor.embedding, b.embedding) AS similarity
 FROM anchor
 JOIN github.repo_readme_summary_embeddings b
@@ -150,10 +150,10 @@ LIMIT 10;
 Repos by category:
 
 ```sql
-SELECT r.full_name, r.stars_count, c.top_category, c.similarity
+SELECT r.name_with_owner, r.stars_count, c.top_category, c.similarity
 FROM github.repo_categories c
 JOIN github.repos r USING (repo_node_id)
-WHERE c.top_category = 'Machine Learning'
+WHERE c.top_category = 'AI & Machine Learning'
 ORDER BY r.stars_count DESC
 LIMIT 20;
 ```
@@ -161,10 +161,10 @@ LIMIT 20;
 Issue volume by repo for an org:
 
 ```sql
-SELECT r.full_name, COUNT(*) AS issue_count
+SELECT r.name_with_owner, COUNT(*) AS issue_count
 FROM github.repo_issues i
 JOIN github.repos r USING (repo_node_id)
-WHERE r.full_name LIKE 'vercel/%'
+WHERE r.name_with_owner LIKE 'vercel/%'
   AND i.is_pull_request = false
 GROUP BY 1
 ORDER BY 2 DESC

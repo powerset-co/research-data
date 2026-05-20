@@ -30,7 +30,7 @@ ATTACH 'ducklake:https://research-data.powerset.dev/github-public/latest/public.
 Repos with the most stars:
 
 ```sql
-SELECT full_name, language, stars_count, pushed_at
+SELECT name_with_owner, stars_count, pushed_at
 FROM github.repos
 ORDER BY stars_count DESC
 LIMIT 20;
@@ -43,7 +43,7 @@ SELECT login, contributions
 FROM github.repo_contributors
 WHERE repo_node_id = (
     SELECT repo_node_id FROM github.repos
-    WHERE full_name = 'duckdb/duckdb'
+    WHERE name_with_owner = 'duckdb/duckdb'
 )
 ORDER BY contributions DESC
 LIMIT 10;
@@ -56,7 +56,7 @@ SELECT pull_number, title, state, user_login, created_at, merged_at
 FROM github.repo_pulls
 WHERE repo_node_id = (
     SELECT repo_node_id FROM github.repos
-    WHERE full_name = 'duckdb/duckdb'
+    WHERE name_with_owner = 'duckdb/duckdb'
 )
 ORDER BY created_at DESC
 LIMIT 20;
@@ -69,7 +69,7 @@ SELECT starred_date, stars_delta
 FROM github.repo_stars_daily
 WHERE repo_node_id = (
     SELECT repo_node_id FROM github.repos
-    WHERE full_name = 'duckdb/duckdb'
+    WHERE name_with_owner = 'duckdb/duckdb'
 )
 ORDER BY starred_date DESC
 LIMIT 30;
@@ -82,11 +82,11 @@ WITH anchor AS (
     SELECT repo_node_id, embedding
     FROM github.repo_readme_summary_embeddings
     WHERE repo_node_id = (
-        SELECT repo_node_id FROM github.repos WHERE full_name = 'duckdb/duckdb'
+        SELECT repo_node_id FROM github.repos WHERE name_with_owner = 'duckdb/duckdb'
     )
       AND embedding IS NOT NULL
 )
-SELECT r.full_name,
+SELECT r.name_with_owner,
        list_cosine_similarity(anchor.embedding, b.embedding) AS similarity
 FROM anchor
 JOIN github.repo_readme_summary_embeddings b
