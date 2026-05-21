@@ -2,7 +2,7 @@
 
 Public dataset of GitHub repository metadata, activity, scores, and contributor information maintained by [Powerset](https://powerset.co). The data covers active public repositories with at least 10 GitHub stars.
 
-![Powerset Research Data](./mcp.gif)
+![Powerset Research Data](./powerset-research-mcp.gif)
 
 ## Access methods
 
