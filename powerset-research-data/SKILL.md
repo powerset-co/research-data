@@ -45,20 +45,20 @@ ORDER BY table_name, ordinal_position;
 
 ## Tables
 
-| Table | Description | Key columns |
-|-------|-------------|-------------|
-| `repos` | Core repository universe (~400k active repos with ≥10 stars) | `repo_node_id`, `name_with_owner`, `stars_count`, `fork_count`, `pushed_at`, `created_at` |
-| `repo_metadata` | Extended attributes: description, topics, license, owner type, feature flags | `repo_node_id`, `language`, `owner_type`, `visibility`, `topics` |
-| `repo_scores` | Powerset-computed ranking scores | `repo_node_id`, `score_overall`, `cohort_group`, `star_cohort` |
-| `repo_categories` | Top category assignment per repo | `repo_node_id`, `top_category`, `top_category_id`, `similarity` |
-| `repo_category_similarities` | Full repo-to-category similarity matrix | `repo_node_id`, `category_id`, `similarity` |
-| `repo_contributors` | Contributor list with commit counts | `repo_node_id`, `user_id`, `login`, `contributions` |
-| `repo_readme_summaries` | LLM-generated README summaries | `repo_node_id`, `summary` |
-| `repo_readme_summary_embeddings` | Embeddings for semantic similarity search | `repo_node_id`, `embedding` (FLOAT[]) |
-| `github_users` | GitHub user profiles | `user_id`, `login`, `company`, `location`, `bio` |
-| `repo_pulls` | Pull request metadata (body text excluded) | `repo_node_id`, `pull_number`, `title`, `state`, `user_login`, `created_at`, `merged_at` |
-| `repo_issues` | Issue metadata (body text excluded) | `repo_node_id`, `issue_number`, `title`, `state`, `user_login`, `created_at`, `is_pull_request` |
-| `repo_stars_daily` | Daily star counts | `repo_node_id`, `starred_date`, `stars_delta` |
+| Table                            | Description                                                                  | Key columns                                                                                     |
+| -------------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `repos`                          | Core repository universe (~400k active repos with ≥10 stars)                 | `repo_node_id`, `name_with_owner`, `stars_count`, `fork_count`, `pushed_at`, `created_at`       |
+| `repo_metadata`                  | Extended attributes: description, topics, license, owner type, feature flags | `repo_node_id`, `language`, `owner_type`, `visibility`, `topics`                                |
+| `repo_scores`                    | Powerset-computed ranking scores                                             | `repo_node_id`, `score_overall`, `cohort_group`, `star_cohort`                                  |
+| `repo_categories`                | Top category assignment per repo                                             | `repo_node_id`, `top_category`, `top_category_id`, `similarity`                                 |
+| `repo_category_similarities`     | Full repo-to-category similarity matrix                                      | `repo_node_id`, `category_id`, `similarity`                                                     |
+| `repo_contributors`              | Contributor list with commit counts                                          | `repo_node_id`, `user_id`, `login`, `contributions`                                             |
+| `repo_readme_summaries`          | LLM-generated README summaries                                               | `repo_node_id`, `summary`                                                                       |
+| `repo_readme_summary_embeddings` | Embeddings for semantic similarity search                                    | `repo_node_id`, `embedding` (FLOAT[])                                                           |
+| `github_users`                   | GitHub user profiles                                                         | `user_id`, `login`, `company`, `location`, `bio`                                                |
+| `repo_pulls`                     | Pull request metadata (body text excluded)                                   | `repo_node_id`, `pull_number`, `title`, `state`, `user_login`, `created_at`, `merged_at`        |
+| `repo_issues`                    | Issue metadata (body text excluded)                                          | `repo_node_id`, `issue_number`, `title`, `state`, `user_login`, `created_at`, `is_pull_request` |
+| `repo_stars_daily`               | Daily star counts                                                            | `repo_node_id`, `starred_date`, `stars_delta`                                                   |
 
 **Join keys**: repo tables join on `repo_node_id`. User data joins via `user_id` (e.g., `repo_contributors.user_id` to `github_users.user_id`).
 
