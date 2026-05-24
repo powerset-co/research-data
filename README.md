@@ -2,7 +2,7 @@
 
 Public dataset of ~400,000 active GitHub repositories maintained by [Powerset](https://powerset.co). We use this data internally to identify top open source developers, diligence fast-growing repos, and understand technology trends. Now the same data layer is freely available for your agents and SQL workflows.
 
-![Powerset Research Data](./powerset-research-mcp.gif)
+![Powerset Research Data](./powerset-mcp.gif)
 
 The dataset includes repositories, contributors, activity, stars, languages, categories, README summaries, embeddings, and project metadata. No credentials are required.
 
