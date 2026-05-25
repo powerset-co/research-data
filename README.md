@@ -88,11 +88,6 @@ If your agent can run DuckDB locally, you can also install the included [powerse
 Run this once per DuckDB session:
 
 ```sql
-INSTALL ducklake;
-INSTALL httpfs;
-LOAD ducklake;
-LOAD httpfs;
-
 ATTACH 'ducklake:https://research-data.powerset.dev/github-public/latest/public.ducklake' AS github (READ_ONLY);
 ```
 
@@ -104,7 +99,6 @@ You can also use the DuckDB CLI directly:
 
 ```bash
 duckdb -c "
-  INSTALL ducklake; INSTALL httpfs; LOAD ducklake; LOAD httpfs;
   ATTACH 'ducklake:https://research-data.powerset.dev/github-public/latest/public.ducklake' AS github (READ_ONLY);
   SELECT count(*) FROM github.repos;
 "

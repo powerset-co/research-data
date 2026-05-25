@@ -10,11 +10,6 @@ You have access to a public GitHub dataset maintained by [Powerset](https://powe
 Run this once per session to attach the catalog:
 
 ```sql
-INSTALL ducklake;
-INSTALL httpfs;
-LOAD ducklake;
-LOAD httpfs;
-
 ATTACH 'ducklake:https://research-data.powerset.dev/github-public/latest/public.ducklake' AS github (READ_ONLY);
 ```
 
