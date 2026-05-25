@@ -190,31 +190,32 @@ LIMIT 10;
 Find repositories similar to `duckdb/duckdb` using README summary embeddings, limited to popular candidates:
 
 ```sql
-WITH anchor AS (
-    SELECT repo_node_id, embedding
-    FROM github.repo_readme_summary_embeddings
-    WHERE repo_node_id = (
-        SELECT repo_node_id
-        FROM github.repos
-        WHERE name_with_owner = 'duckdb/duckdb'
-    )
-      AND embedding IS NOT NULL
-), candidates AS (
+WITH anchor AS MATERIALIZED (
     SELECT e.repo_node_id, e.embedding
     FROM github.repo_readme_summary_embeddings e
     JOIN github.repos r USING (repo_node_id)
-    WHERE r.stars_count >= 1000
-      AND e.repo_node_id <> (SELECT repo_node_id FROM anchor)
+    WHERE r.name_with_owner = 'duckdb/duckdb'
       AND e.embedding IS NOT NULL
+), candidate_ids AS MATERIALIZED (
+    SELECT repo_node_id, name_with_owner
+    FROM github.repos
+    WHERE stars_count >= 1000
+      AND name_with_owner <> 'duckdb/duckdb'
+), candidates AS (
+    SELECT c.name_with_owner, e.embedding
+    FROM candidate_ids c
+    JOIN github.repo_readme_summary_embeddings e USING (repo_node_id)
+    WHERE e.embedding IS NOT NULL
 )
-SELECT r.name_with_owner,
+SELECT candidates.name_with_owner,
        list_cosine_similarity(anchor.embedding, candidates.embedding) AS similarity
 FROM anchor
-JOIN candidates ON true
-JOIN github.repos r ON r.repo_node_id = candidates.repo_node_id
+CROSS JOIN candidates
 ORDER BY similarity DESC
 LIMIT 10;
 ```
+
+Filter candidates before joining embeddings, as shown above. The embedding table is large, so comparing against the full table can be slow and memory-intensive.
 
 ### Tables
 

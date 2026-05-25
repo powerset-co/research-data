@@ -75,6 +75,7 @@ ORDER BY table_name, ordinal_position;
 - Always use `LIMIT` when exploring. Start with `LIMIT 20` and increase as needed.
 - Prefer aggregations (`COUNT`, `SUM`, `GROUP BY`) over fetching raw rows.
 - Do not `SELECT *` on `repo_readme_summary_embeddings` - the embedding column is large. Select specific columns instead.
+- For embedding similarity searches, filter candidate repositories first, then join to `repo_readme_summary_embeddings`.
 - Use `repo_readme_summaries` (not raw READMEs) to understand what a project does.
 - Filter by `repo_node_id` when querying activity tables (`repo_pulls`, `repo_issues`, `repo_stars_daily`) for specific repos.
 
@@ -125,24 +126,30 @@ ORDER BY starred_date DESC
 LIMIT 30;
 ```
 
-Find similar repos using README embeddings:
+Find similar repos using README embeddings, limited to popular candidates:
 
 ```sql
-WITH anchor AS (
-    SELECT repo_node_id, embedding
-    FROM github.repo_readme_summary_embeddings
-    WHERE repo_node_id = (
-        SELECT repo_node_id FROM github.repos WHERE name_with_owner = 'duckdb/duckdb'
-    )
-      AND embedding IS NOT NULL
+WITH anchor AS MATERIALIZED (
+    SELECT e.repo_node_id, e.embedding
+    FROM github.repo_readme_summary_embeddings e
+    JOIN github.repos r USING (repo_node_id)
+    WHERE r.name_with_owner = 'duckdb/duckdb'
+      AND e.embedding IS NOT NULL
+), candidate_ids AS MATERIALIZED (
+    SELECT repo_node_id, name_with_owner
+    FROM github.repos
+    WHERE stars_count >= 1000
+      AND name_with_owner <> 'duckdb/duckdb'
+), candidates AS (
+    SELECT c.name_with_owner, e.embedding
+    FROM candidate_ids c
+    JOIN github.repo_readme_summary_embeddings e USING (repo_node_id)
+    WHERE e.embedding IS NOT NULL
 )
-SELECT r.name_with_owner,
-       list_cosine_similarity(anchor.embedding, b.embedding) AS similarity
+SELECT candidates.name_with_owner,
+       list_cosine_similarity(anchor.embedding, candidates.embedding) AS similarity
 FROM anchor
-JOIN github.repo_readme_summary_embeddings b
-  ON b.repo_node_id <> anchor.repo_node_id
-  AND b.embedding IS NOT NULL
-JOIN github.repos r ON r.repo_node_id = b.repo_node_id
+CROSS JOIN candidates
 ORDER BY similarity DESC
 LIMIT 10;
 ```
