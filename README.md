@@ -181,39 +181,36 @@ ORDER BY 2 DESC
 LIMIT 10;
 ```
 
-Find repositories similar to `duckdb/duckdb` using README summary embeddings, limited to popular candidates:
+Find repositories similar to `duckdb/duckdb` using the precomputed README similarity table:
 
 ```sql
-WITH anchor AS MATERIALIZED (
-    SELECT e.repo_node_id, e.embedding
-    FROM github.repo_readme_summary_embeddings e
-    JOIN github.repos r USING (repo_node_id)
-    WHERE r.name_with_owner = 'duckdb/duckdb'
-      AND e.embedding IS NOT NULL
-), candidate_ids AS MATERIALIZED (
+WITH source AS (
     SELECT repo_node_id, name_with_owner
-    FROM github.repos
-    WHERE stars_count >= 1000
-      AND name_with_owner <> 'duckdb/duckdb'
-), candidates AS (
-    SELECT c.name_with_owner, e.embedding
-    FROM candidate_ids c
-    JOIN github.repo_readme_summary_embeddings e USING (repo_node_id)
-    WHERE e.embedding IS NOT NULL
+    FROM github.analytics.repo_profile
+    WHERE name_with_owner_lower = 'duckdb/duckdb'
+    LIMIT 1
 )
-SELECT candidates.name_with_owner,
-       list_cosine_similarity(anchor.embedding, candidates.embedding) AS similarity
-FROM anchor
-CROSS JOIN candidates
-ORDER BY similarity DESC
-LIMIT 10;
+SELECT source.name_with_owner AS source_repo,
+       p.name_with_owner AS similar_repo,
+       p.stars_count,
+       s.rank,
+       s.similarity
+FROM source
+JOIN github.analytics.repo_readme_similar_repos s
+  ON s.source_repo_node_id = source.repo_node_id
+JOIN github.analytics.repo_profile p
+  ON p.repo_node_id = s.similar_repo_node_id
+WHERE s.rank <= 10
+ORDER BY s.rank;
 ```
 
-Filter candidates before joining embeddings, as shown above. The embedding table is large, so comparing against the full table can be slow and memory-intensive.
+Use `github.analytics.repo_readme_similar_repos` for seed-repository nearest neighbors. It stores the top precomputed README-summary matches per repository, so it is faster and more reliable than scanning `repo_readme_summary_embeddings` directly.
 
 ### Tables
 
-The `github` catalog contains the following tables. Repo tables join on `repo_node_id`. User data joins via `user_id`, for example `repo_contributors.user_id` to `github_users.user_id`.
+The `github` catalog contains the following tables. Main schema tables can be referenced as `github.<table>`. Analytics tables use `github.analytics.<table>`. Repo tables join on `repo_node_id`. User data joins via `user_id`, for example `repo_contributors.user_id` to `github_users.user_id`.
+
+#### Main schema
 
 | Table                            | Description                                                                                                                     | Key columns                                                                                                             |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
@@ -229,6 +226,20 @@ The `github` catalog contains the following tables. Repo tables join on `repo_no
 | `repo_pulls`                     | Pull request metadata from roughly the last two years. Body text is excluded.                                                   | `repo_node_id`, `pull_number`, `title`, `state`, `user_id`, `user_login`, `created_at`, `merged_at`                     |
 | `repo_issues`                    | Issue metadata from roughly the last two years. Body text is excluded. Includes pull requests; use `is_pull_request` to filter. | `repo_node_id`, `issue_number`, `title`, `state`, `user_id`, `user_login`, `created_at`, `is_pull_request`              |
 | `repo_stars_daily`               | Daily star counts per repository.                                                                                               | `repo_node_id`, `starred_date`, `stars_delta`                                                                           |
+
+#### Analytics schema
+
+| Table                                   | Description                                                                                                  | Key columns                                                                                  |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| `analytics.category_stats`              | Category-level aggregate stats and examples.                                                                 | `top_category_id`, `top_category`, `repo_count`, `total_stars`, `stars_90d`, `activity_90d`  |
+| `analytics.language_category_stats`     | Category-level aggregate stats within each primary language.                                                  | `language`, `top_category_id`, `top_category`, `repo_count`, `total_stars`, `stars_90d`      |
+| `analytics.repo_activity_monthly`       | Monthly per-repository activity counts for stars, issues, pull requests, and commits.                         | `repo_node_id`, `month`, `stars`, `issues_opened`, `prs_opened`, `prs_merged`, `commits`     |
+| `analytics.repo_activity_summary`       | Rolling per-repository activity counts and last-activity timestamps.                                          | `repo_node_id`, `stars_30d`, `stars_90d`, `prs_merged_90d`, `commits_90d`, `last_activity_at` |
+| `analytics.repo_profile`                | Analysis-ready repository profile with metadata, category, score, and README summary fields.                  | `repo_node_id`, `name_with_owner`, `name_with_owner_lower`, `stars_count`, `score_overall`   |
+| `analytics.repo_profile_with_activity`  | `analytics.repo_profile` joined with rolling activity summary fields.                                         | `repo_node_id`, `name_with_owner`, `score_overall`, `stars_90d`, `activity_90d`              |
+| `analytics.repo_readme_similar_repos`   | Top 100 README-summary nearest neighbors per repository.                                                      | `source_repo_node_id`, `similar_repo_node_id`, `rank`, `similarity`                           |
+| `analytics.repo_top_contributors`       | Top contributor profiles and contribution counts per repository.                                              | `repo_node_id`, `user_id`, `login`, `contributions`, `contributor_rank`, `followers_count`   |
+| `analytics.repo_topic_index`            | One row per repository topic for topic search, filtering, and faceting.                                       | `topic`, `repo_node_id`, `name_with_owner`, `stars_count`, `score_overall`, `top_category`   |
 
 ### Data coverage and limitations
 
