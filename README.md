@@ -12,15 +12,15 @@ The dataset includes repositories, contributors, activity, stars, languages, cat
 
 Example questions you can ask:
 
+- Find the 5 most impressive systems architects in San Francisco
+- Who are the best fits for this role? [insert link to engineering job description]
 - What are the fastest-growing terminal coding agents?
-- Find the 5 most impressive systems architects in San Francisco.
-- What are the most popular AI repos with heavy Bun dependency?
 
 ### Access methods
 
 There are two primary ways to use this data:
 
-1. **MCP server** - connect Claude, Codex, Cursor, or another MCP-compatible client and ask questions conversationally.
+1. **MCP server** - connect Claude, Codex, Cursor, or another MCP-compatible client and ask questions conversationally. Also available as a [ChatGPT app](https://chatgpt.com/apps/powerset-research/asdk_app_6a14890167bc8191b77dea0507fb2af6).
 2. **DuckDB + Agent Skills** - attach directly to the frozen DuckLake catalog and run SQL yourself, optionally giving your agent the included skill for schema context, query patterns, and examples.
 
 ### MCP server
